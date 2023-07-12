@@ -23,9 +23,9 @@ class RegisterView(APIView):
     
 
 class ChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def put(self, request):
         serializer = ChangePasswordSerializer(context={'request': request}, data=request.data)
         if serializer.is_valid():
             request.user.set_password(serializer.validated_data['new_password'])
