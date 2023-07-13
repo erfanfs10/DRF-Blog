@@ -5,20 +5,27 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .serializers import PostListDetailSerializer, PostManageSerializer
 from .models import Post
-from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 
 class PostListView(ListAPIView):
     serializer_class = PostListDetailSerializer
 
     def get_queryset(self):
-        posts = Post.objects.select_related("user").all()
+        order_by = self.request.GET.get("q", "created").lower()
+        posts = Post.objects.select_related("user").prefetch_related("tags").all().order_by("-"+order_by)
         return posts
 
 
-class PostDetailView(RetrieveAPIView):
-    queryset = Post
-    serializer_class = PostListDetailSerializer
+class PostDetailView(APIView):
+   
+    def get(self, request, pk):
+        try:
+            post = Post.objects.select_related("user").prefetch_related("tags").get(pk=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = PostListDetailSerializer(post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PostCreateView(APIView):
