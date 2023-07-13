@@ -9,7 +9,7 @@ class TagInline(admin.StackedInline):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("user", "title", "created", "updated")
+    list_display = ("user", "title", "created", "updated", "view")
     inlines = (TagInline,)
 
 

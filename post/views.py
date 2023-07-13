@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .serializers import PostListDetailSerializer, PostManageSerializer
 from .models import Post
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView
 
 
 class PostListView(ListAPIView):
@@ -21,9 +21,11 @@ class PostDetailView(APIView):
    
     def get(self, request, pk):
         try:
-            post = Post.objects.select_related("user").prefetch_related("tags").get(pk=pk)
+            post = Post.objects.select_related("user").get(pk=pk)
+            post.increace_view()
         except:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_404_NOT_FOUND)  
+     
         serializer = PostListDetailSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -75,5 +77,5 @@ class MyPostsView(ListAPIView):
     serializer_class = PostListDetailSerializer
 
     def get_queryset(self):
-        posts = Post.objects.filter(user=self.request.user).select_related("user").all()
+        posts = Post.objects.filter(user=self.request.user).select_related("user").prefetch_related("tags").all()
         return posts
