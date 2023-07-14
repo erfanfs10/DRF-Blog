@@ -4,10 +4,10 @@ from .models import Post
 
 class PostListDetailSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username")
-    tags = serializers.StringRelatedField(many=True)
+    tag = serializers.StringRelatedField(many=True)
     class Meta:
         model = Post
-        fields = ("id", "user", "title", "body", "view", "tags")
+        fields = ("id", "user", "title", "body", "view", "created", "tag")
 
 
 class PostManageSerializer(serializers.ModelSerializer):
