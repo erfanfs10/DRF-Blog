@@ -17,8 +17,8 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     body = models.TextField()
     view = models.IntegerField(default=0)
-    tag = models.ManyToManyField(Tag, blank=True)
-    created = models.DateField(auto_now_add=True)
+    tag = models.ManyToManyField(Tag, blank=True, related_name="post")
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ("-created", "-view")

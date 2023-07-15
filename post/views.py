@@ -103,6 +103,9 @@ class ManageSave(APIView):
 
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
+        if Save.objects.filter(post=post).exists():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
         Save.objects.create(user=request.user, post=post)
         return Response(status=status.HTTP_201_CREATED)
     
@@ -112,7 +115,7 @@ class ManageSave(APIView):
             save = Save.objects.get(user=request.user, post=post)
             Save.delete(save)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     
 
 class Mysave(ListAPIView):
@@ -122,3 +125,36 @@ class Mysave(ListAPIView):
     def get_queryset(self):
         queryset = Post.objects.filter(saves__user=self.request.user).select_related("user").prefetch_related(Prefetch("tag", queryset=Tag.objects.all()))
         return queryset
+    
+
+class ManageTag(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+
+        if post.user != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        q = request.POST.get("q", None)
+        if q is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        tag , _ = Tag.objects.get_or_create(name=q.lower())
+        post.tag.add(tag)
+        return Response(status=status.HTTP_201_CREATED)
+    
+    def delete(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        
+        if post.user != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        q = request.POST.get("q", None)
+        if q is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        tag = get_object_or_404(Tag, name=q)
+        post.tag.remove(tag.id)
+        return Response(status=status.HTTP_200_OK)
+       
